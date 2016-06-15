@@ -26,6 +26,25 @@ def cal_similarity(kind, epsilon=1e-9):
     norms = np.array([np.sqrt(np.diagonal(sim))])
     return (sim / norms / norms.T)
 
+def cal_similarity_norm(kind, epsilon=1e-9):
+    '''采用归一化的指标:Pearson correlation coefficient'''
+    if kind == 'user':
+        # 对同一个user的打分归一化
+        rating_user_diff = var.ratings.copy()
+        for i in range(var.ratings.shape[0]):
+            nzero = var.ratings[i].nonzero()
+            rating_user_diff[i][nzero] = var.ratings[i][nzero] - var.user_mean[i]
+        sim = rating_user_diff.dot(rating_user_diff.T) + epsilon
+    elif kind == 'item':
+        # 对同一个item的打分归一化
+        rating_item_diff = var.ratings.copy()
+        for j in range(var.ratings.shape[1]):
+            nzero = var.ratings[:,j].nonzero()
+            rating_item_diff[:,j][nzero] = var.ratings[:,j][nzero] - var.item_mean[j]
+        sim = rating_item_diff.T.dot(rating_item_diff) + epsilon
+    norms = np.array([np.sqrt(np.diagonal(sim))])
+    return (sim / norms / norms.T)
+
 def rmse(pred, actual):
     '''计算预测结果的rmse'''
     from sklearn.metrics import mean_squared_error

@@ -75,9 +75,21 @@ def predict_topkCF_user(user, item, k=30):
     return prediction
 
 def predict_blend(user, item, k1=20, k2=30, alpha=0.6):
+    '''融合算法，融合item-itemCF和user-userCF,预测rating'''
     prediction1 = predict_topkCF_item(user, item, k1)
     prediction2 = predict_topkCF_user(user, item, k2)
     prediction = alpha * prediction1 + (1-alpha) * prediction2
+    if prediction > 5: prediction = 5
+    if prediction < 1: prediction = 1
+    return prediction
+
+def predict_normCF_item(user, item, k=20):
+    '''在topK的基础上采用归一化矩阵'''
+    nzero = var.ratings[user].nonzero()[0]
+    baseline = var.item_mean + var.user_mean[user] - var.all_mean
+    choice = nzero[var.item_similarity_norm[item, nzero].argsort()[::-1][:k]]
+    prediction = (var.ratings[user, choice] - baseline[choice]).dot(var.item_similarity_norm[item, choice])\
+                / sum(var.item_similarity_norm[item, choice]) + baseline[item]
     if prediction > 5: prediction = 5
     if prediction < 1: prediction = 1
     return prediction
