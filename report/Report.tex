@@ -1,0 +1,85 @@
+% TEX encoding = UTF-8 Unicode
+% Compiled by XeLaTeX.
+
+% Compiled at least 2 times, for generating contents and figure reference.
+% if documents are needed, using BibTeX first after aux file generated.
+
+\documentclass[a4paper,12pt]{ctexart}
+\usepackage{xeCJK}
+\usepackage{setspace}				% set line space
+%\usepackage{amsmath}				% Math package, like align
+%\usepackage{bbm}					% use indicator function in math
+
+
+\title{推荐系统的协同过滤算法实现与浅析}
+%\author{}
+%\date{\today}
+
+\begin{document}
+\begin{spacing}{1.35}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{摘要}
+
+\subsection{项目描述}
+
+个性化推荐系统基于用户的历史兴趣和商品的特性，向用户推荐合适的信息或商品，其目前在互联网领域，尤其是电子商务、广告业务等方面，具有非常广泛的应用。推荐系统的进步，会更加迎合用户的需求，为产品赢得更好的口碑，创造更多的收益，形成一个良性的循环。因而，对推荐系统的研究在算法和实践中不断发展，不断进步。
+
+本项目选择推荐系统为主题，基于(user, item, rating)数据集，预测没有评价的(user, item)，以均方根误差RMSE为评价指标。
+
+由于这门课是以算法为核心的课程，因而本项目更加注重算法的具体内容和细节。在项目中，所有核心代码均自己编写，没有调用任何外部算法模块。
+
+在baseline的基础上，我实现了最基本的user-user和item-item协同过滤算法，以及基于baseline的协同过滤算法，验证了item-item相比user-user能获得更好的效果。同时，在基本的协同过滤算法上，加上了bias、TopK等优化，进一步提升了模型效果。此外，研究了TopK算法中，K的取值对模型效果的影响。最后，尝试融合了不同的算法并调参，获得了更好的融合模型。
+
+在项目过程中，在计算统计量、相似度、预测等处，遇到了一些算法细节问题，并进行了合适的处理。同时，自己重新组织了代码，使其具有更好的模块性，运行更加流水线化。
+
+此外，对于数据集采用了5-fold 交叉验证，以交叉验证后的均值RMSE作为更稳定的评价指标。
+
+\subsection{数据集}
+
+原先，我采用的是Netflix-Prize 数据集。标准的Netflix-Prize数据集包含了480189个user，和17770个item，以及总计约1亿的ratings.
+
+对于协同过滤方法来说，该数据集产生的评分矩阵达$480189 \times 17770$维，在该矩阵上的统计已经要耗时数十秒，对该矩阵进行更细粒度的计算则会更慢。
+
+因而，我换用了一个规模更小的数据集MovieLens, 其数据方式与Netflix-Prize基本
+
+\subsection{评价指标}
+
+训练集和测试集规模比为$4:1$。
+
+评价指标选择均方根误差，其定义如下：
+
+\[RMSE = \sqrt{\sum_{i = 1}^{N}(r_{xi} - \hat{r}_{xi})^{2}}\]
+其中，$\hat{r}_{xi}$为用户$x$对项目$i$的预测打分，$r_{xi}$为用户$x$对项目$i$的实际打分。
+
+在模型改进时，采用了交叉验证的方法，最后选择每组数据集的RMSE均值作为预测方法的最终RMSE值：(k为交叉验证的组数)
+
+\[\overline{RMSE} = \frac{1}{k}\sum_{i=1}^{k}RMSE_{i}\]
+
+\section{模型介绍与分析}
+
+\subsection{统计指标及baseline}
+
+\subsection{相似度矩阵与协同过滤}
+
+\subsection{结合baseline的协同过滤}
+
+\subsection{TopK协同过滤与K值的选择}
+
+\subsection{模型融合与融合参数}
+
+\section{进一步工作}
+
+\section{总结}
+
+本项目所有源代码已在GitHub开源，地址为{https://github.com/irmowan/MovieLens} .
+
+\renewcommand\refname{参考文献}
+\bibliographystyle{plain}
+\bibliography{Report}
+
+\end{spacing}
+\end{document}

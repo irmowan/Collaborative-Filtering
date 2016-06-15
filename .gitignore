@@ -1,4 +1,10 @@
-/dataset
-/report
+dataset/
+__pycache__/
 .ipynb*
-/__pycache__
+
+*.log
+*.aux
+*.out
+*.toc
+*.gz
+
