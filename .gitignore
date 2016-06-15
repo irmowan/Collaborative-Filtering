@@ -1,3 +1,4 @@
 /dataset
 /report
 .ipynb*
+/__pycache__
