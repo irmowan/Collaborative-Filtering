@@ -12,6 +12,16 @@ def predict_itemCF(user, item, k=100):
                 / sum(var.item_similarity[item, nzero])
     return prediction
 
+def predict_userCF(user, item, k=100):
+    '''user-user协同过滤算法,预测rating'''
+    nzero = var.ratings[:,item].nonzero()[0]
+    prediction = (var.ratings[nzero, item]).dot(var.user_similarity[user, nzero])\
+                / sum(var.user_similarity[user, nzero])
+    if np.isnan(prediction):
+        baseline = var.user_mean + var.item_mean[item] - var.all_mean
+        prediction = baseline[user]
+    return prediction
+
 def predict_itemCF_baseline(user, item, k=100):
     '''结合baseline的item-item CF算法,预测rating'''
     nzero = var.ratings[user].nonzero()[0]
@@ -36,10 +46,8 @@ def predict_itemCF_bias(user, item, k=100):
     baseline = var.item_mean + var.user_mean[user] - var.all_mean
     prediction = (var.ratings[user, nzero] - baseline[nzero]).dot(var.item_similarity[item, nzero])\
                 / sum(var.item_similarity[item, nzero]) + baseline[item]
-    if prediction > 5:
-        prediction = 5
-    if prediction < 1:
-        prediciton = 1
+    if prediction > 5: prediction = 5
+    if prediction < 1: prediciton = 1
     return prediction
 
 def predict_topkCF_item(user, item, k=20):
@@ -53,7 +61,7 @@ def predict_topkCF_item(user, item, k=20):
     if prediction < 1: prediction = 1
     return prediction
 
-def predict_topkCF_user(user, item, k=20):
+def predict_topkCF_user(user, item, k=30):
     '''top-k CF算法,以user-user协同过滤为基础，结合baseline,预测rating'''    
     nzero = var.ratings[:,item].nonzero()[0]
     choice = nzero[var.user_similarity[user, nzero].argsort()[::-1][:k]]
@@ -66,10 +74,10 @@ def predict_topkCF_user(user, item, k=20):
     if prediction < 1: prediction = 1
     return prediction
 
-def predict_blend(user, item, k1=20, k2=20):
+def predict_blend(user, item, k1=20, k2=30, alpha=0.6):
     prediction1 = predict_topkCF_item(user, item, k1)
     prediction2 = predict_topkCF_user(user, item, k2)
-    prediction = (prediction1 + prediction2) / 2
+    prediction = alpha * prediction1 + (1-alpha) * prediction2
     if prediction > 5: prediction = 5
     if prediction < 1: prediction = 1
     return prediction
