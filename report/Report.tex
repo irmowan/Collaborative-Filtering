@@ -1,7 +1,7 @@
 % TEX encoding = UTF-8 Unicode
 % Compiled by XeLaTeX.
 
-\documentclass[utf8, a4paper,12pt, onecolumn]{ctexart}
+\documentclass[utf8, a4paper,11pt, onecolumn]{ctexart}
 \usepackage{xeCJK}
 \usepackage{setspace}				% set line space
 
@@ -44,6 +44,8 @@
 此外，相比于NetflixPrize，其提供了更多的信息，除了打分时间以外，包括用户的性别、年龄、职业、地区，以及电影的名称、发行时间、和丰富的标签(科幻、动作、文艺等)。
 
 这些丰富的信息都是可以被推荐系统所利用的。如用户的年龄和职业可以被用来聚类，电影的标签可以用来做基于内容(content-based)的推荐，时间戳可以用来进行时序化的推荐(更新鲜的打分具有更高的权重)，这些还可以同协同过滤算法相结合，从而达到提高预测速度和精度的目的。
+
+此外，需要注意的是，数据集是经过过滤处理的，所有打分少于20个的用户均被过滤，因而，出现在数据集中的用户，每个用户至少对20部影片进行了打分。（而对于每部影片则不然，可能存在没有被打分的影片）
 
 为了获得较快的执行速度，所有模型的结果均基于100K版本的MovieLens数据集。该数据集包括943 users, 1682 items, 100000 ratings.
 
@@ -172,8 +174,6 @@ baseline是基于这些统计量的预测算法。其预测公式为
 尝试调整K，对不同的K，得到的RMSE如表格\ref{k-table}.
 
 \begin{table}
-	\caption{不同K值下的RMSE}
-	\label{k-table}
 	\centering
 	\begin{tabular}{| c | c | c | c | c |}
 		\hline
@@ -202,6 +202,8 @@ baseline是基于这些统计量的预测算法。其预测公式为
 		200 & 0.8546 &	0.9345 &	0.8747 &	0.9526 \\
 		\hline 
 	\end{tabular}
+	\caption{不同K值下的RMSE}
+	\label{k-table}
 \end{table}
 
 可以看出，随着K的增大，训练集上的RMSE逐渐增大，而不是一般意义上的逐渐变小，其原因主要是，训练数据融入了均值和相似度，在预测时不可避免地利用到了原先的信息。
@@ -212,9 +214,9 @@ baseline是基于这些统计量的预测算法。其预测公式为
 
 \begin{figure}
 	\centering
+	\includegraphics[width=0.8\linewidth]{k-figure.png}
 	\caption{不同K值下的RMSE变化图}
 	\label{k-figure}
-	\includegraphics[width=0.95\linewidth]{k-figure.png}
 \end{figure}
 
 测试集上的确呈现出非典型的U型，U型的低谷即为对应的最优K值。事实上，采用更多的数据，边缘数据由于其权重的减少，对最终预测值的影响也减小，类似于经济学中的边际效应递减规律。
@@ -239,7 +241,10 @@ baseline是基于这些统计量的预测算法。其预测公式为
 
 然而，在topK item-item协同过滤的基础上，将原先的相似度矩阵替换为归一化后的相似度矩阵，其RMSE反而从\textbf{0.9213}提高到\textbf{0.9253}。
 
-目前暂时并不知道出于什么原因，因而，在下面的过程中，没有采用这一方法。
+至于为什么会出现RMSE反而提高的情况，经与老师讨论及相关查阅后，发现这与数据集本身的一些性质有关，对于某些打分很少的item，做归一化之后，其反而抹去了这些item原来就已经很少的信息。例如一部小众的影片，三四个口味相符的受众同时打出了5分的高分，则归一化之后，一下子抹去了这部电影的高分信息，反而产生了信息的损失。
+
+在这种情况下，忽然想到，那对于user-user协同过滤，由于该数据集中，每个用户至少打过20个评分，那么这样的弊端应该会被尽量避免。于是，尝试对user-user协同过滤采用归一化后的相似度矩阵，然而效果同样不尽人意。
+
 
 \subsection{模型融合与融合参数}
 
@@ -261,9 +266,55 @@ baseline是基于这些统计量的预测算法。其预测公式为
 
 \[\hat{r}_{xi} = \alpha * \hat{r_1}_{xi} + (1-\alpha) * \hat{r_2}_{xi}\]
 
-其中，$\alpha \in [0, 1]$，在端点处即分别为两个模型，而系数$\alpha$则表示了融合程度。
+其中，$\alpha \in [0, 1]$，在端点处即分别为两个模型，而系数$\alpha$则表示了融合程度，也即在融合模型中item-item协同过滤的权重。
 
 通过调参，调整$\alpha$的值，可以获得最佳的融合效果。
+
+在不同的$\alpha$值下测量RMSE，得到表\ref{alpha-table}.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\textbf{$\alpha$} & 训练集RMSE & 测试集RMSE \\
+		\hline
+		0.00 & 0.8225 & 0.9445 \\
+		\hline
+		0.10 & 0.8108 & 0.9368 \\
+		\hline
+		0.30 & 0.7907 & 0.9248 \\
+		\hline
+		0.50 & 0.7754 & 0.9176 \\
+		\hline
+		0.60 & 0.7696 & 0.9159 \\
+		\hline
+		0.65 & 0.7672 & 0.9155 \\
+		\hline
+		0.70 & 0.7651 & 0.9154 \\
+		\hline
+		0.75 & 0.7634 & 0.9156 \\
+		\hline
+		0.80 & 0.7620 & 0.9161 \\
+		\hline
+		0.90 & 0.7601 & 0.9181 \\
+		\hline
+		1.00 & 0.7596 & 0.9213 \\
+		\hline
+	\end{tabular}
+	\caption{不同融合参数$\alpha$下的RMSE}
+	\label{alpha-table}
+\end{table}
+
+同样，画出不同$\alpha$下，融合模型的RMSE变化趋势(图\ref{alpha-figure})。
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.8\linewidth]{alpha-figure.png}
+	\caption{不同$\alpha$值下的RMSE变化图}
+	\label{alpha-figure}
+\end{figure}
+
+最终，选取$\alpha = 0.70$，得到了\textbf{0.9154}的RMSE。
 
 此外，还可以考虑一些非线性的模型融合方式。
 
@@ -273,10 +324,8 @@ baseline是基于这些统计量的预测算法。其预测公式为
 
 其最终的RMSE比较为表格\ref{RMSE-table}，需要注意的是，这其中很多方法都是建立在前者的方法上，叠加了前面的方法，一点点尝试改进。
 
-\begin{table}[h]\large
+\begin{table}[h]
 	\centering
-	\caption{不同方法的RMSE比较}
-	\label{RMSE-table}
 	\begin{tabular}{|c|c|}
 		\hline
 		\textbf{方法} & \textbf{RMSE} \\
@@ -299,13 +348,14 @@ baseline是基于这些统计量的预测算法。其预测公式为
 		\hline
 		normCF(item, k=20) &0.9253 \\
 		\hline
-		blendCF($\alpha$=0.6) & 0.9159 \\		
+		blendCF($\alpha$=0.7) & 0.9154 \\		
 		\hline
 	\end{tabular}
-
+	\caption{不同方法的RMSE比较}
+	\label{RMSE-table}
 \end{table}
 
-最终，在不断进行各类优化后，融合了两个topkCF模型的blendCF模型取得了\textbf{0.9159}的RMSE值。
+最终，在不断进行各类优化后，融合了两个topkCF模型的blendCF模型取得了\textbf{0.9154}的RMSE值。
 
 \section{总结}
 
@@ -323,11 +373,14 @@ topK算法则更进一步，大大提升了模型效果。其中，关于K值的
 
 此外，算法中，关于divide by zero等处理细节，以及 Vectorization等技巧，可以达到避免潜在风险、提升算法效率的作用。
 
+算法实践过程中，也遇到了不少的问题和困惑，请教了老师，同时阅读了历史上一些相关领域的经典论文\cite{breese1998empirical}\cite{sarwar2001item}，理解了这之中不同算法细节的优缺点和应用场景。
+
 其实，这个数据集上还可以做更多的工作，例如利用电影的标签，进行基于内容的推荐。而在应用到现实场景中时，电影的发布时间也会成为一个推荐的因素，人们更倾向于观看更新的影片。
 
 总而言之，通过这个动手项目，第一次采用了Numpy, Pandas等科学计算库，锻炼了手写算法的能力，加深了对协同过滤的理解，从中学到了很多。
 
-\renewcommand\refname{参考文献}
+
+%\renewcommand\refname{参考文献}
 \bibliographystyle{plain}
 \bibliography{Report}
 
