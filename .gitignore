@@ -7,4 +7,6 @@ __pycache__/
 *.out
 *.toc
 *.gz
+*.blg
+*.bbl
 
