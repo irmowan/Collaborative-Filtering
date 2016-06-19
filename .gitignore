@@ -1,5 +1,6 @@
 dataset/
 __pycache__/
+papers/
 .ipynb*
 
 *.log
