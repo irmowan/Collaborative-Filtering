@@ -36,7 +36,7 @@ Or, you can  see the [result](https://github.com/irmowan/Collaborative-Filtering
 Python files:
 ├── main.py			# Main python file including training and testing.
 ├── predict.py		# Predict functions.
-├── utils.py		# Some useful functions, including calculating.
+├── utils.py			# Some useful functions, including calculating.
 ├── var.py			# Define global variables.
 
 Jupyter Notebook files:
@@ -44,7 +44,7 @@ Jupyter Notebook files:
 ├── TopK.ipynb				# File to choose K in Top-K algorithm.
 ├── alpha.ipynb				# File to choose alpha in model blending.
 ├── MovieLens.ipynb			# Early version file for data cleanning.
-├── CF.ipynb				# Early version file about Collarative Filtering.
+├── CF.ipynb					# Early version file about Collarative Filtering.
 
 Others:
 ├── LICENSE				# MIT LICENSE
@@ -55,8 +55,8 @@ Others:
 │   ├── Report.tex		# Raw Tex file. Using XeTeX as the engine.
 │   ├── Report.bib		# References.
 │   ├── Report.pdf		# Exported pdf report.
-│   ├── Plot			# Plot folder. Including Echarts.
-│   ├── K-figure.png	# Pictures included in the report.
+│   ├── Plot				# Plot folder. Including Echarts.
+│   ├── K-figure.png		# Pictures included in the report.
 │   ├── alpha-figure.png
 │   └── rating-pie.png
 ```
