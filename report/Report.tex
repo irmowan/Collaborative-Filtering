@@ -1,10 +1,10 @@
 % TEX encoding = UTF-8 Unicode
 % Compiled by XeLaTeX.
 
-\documentclass[utf8, a4paper,11pt, onecolumn]{ctexart}
+\documentclass[utf8, a4paper, 11pt, onecolumn]{ctexart}
 \usepackage{xeCJK}
 \usepackage{setspace}				% set line space
-
+\usepackage{multicol}
 
 \title{推荐系统的协同过滤算法实现与浅析}
 %\author{}
@@ -94,6 +94,15 @@
 首先，对于输入数据进行一些统计分析。
 
 针对矩阵的稀疏程度，只需做简单运算即可得到，打分矩阵的密度为 $5.04\%$。
+
+总共有五种打分，以某个训练集为例，作出简单的打分分布(\ref{rating-pie})，可以大致看出各个分数的打分情况。
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{rating-pie.png}
+	\caption{打分分布饼图}
+	\label{rating-pie}
+\end{figure}
 
 对矩阵的每一行和每一列求平均值，得到了各个user和item的打分均值。需要注意的是，此处要过滤零值，只对非零值求平均，否则无意义。
 
